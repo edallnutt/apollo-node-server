@@ -2,10 +2,23 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const { networkInterfaces } = require('os');
 const axios = require('axios');
-const EC = require('elliptic').ec;
-const ec = new EC('secp256k1');
 
+// required to use go function compiled to c lib
+const ref = require("ref");
+const ffi = require("ffi");
+const Struct = require("ref-struct")
+const ArrayType = require("ref-array")
+var ByteArray = ArrayType(ref.types.byte);
 
+var GoByteArray = Struct({
+  data: ByteArray,
+  len:  "longlong",
+  cap: "longlong"
+})
+
+var encrypt = ffi.Library("./encrypt.dylib", {
+	encryptTrackKey: [ GoByteArray, [GoByteArray, GoByteArray]]
+})
 
 const app = express();
 
@@ -30,10 +43,14 @@ for (const name of Object.keys(nets)) {
 console.log(results)
 
 const port = 8080
-const host = results["wlan0"][0]
-
+const host = "localhost"
+try {
+	host = results["wlan0"][0]
+} catch (error) {
+	console.log(error)
+}
 function encryptKey(publicKeyBytes, trackKeyBytes) {
-  ephemeraPrivateKey = ec
+  
 }
 
 
